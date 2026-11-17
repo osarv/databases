@@ -1,84 +1,87 @@
-create view BasicInformation as
-select idnr, name, login, students.program, branch 
-    from students left outer join studentbranches
-        on idnr = student;
+CREATE VIEW BasicInformation AS
+SELECT idnr, name, login, students.program, branch 
+    FROM students LEFT OUTER JOIN studentbranches
+        ON idnr = student;
 
-create view FinishedCourses as
-select student, course, courses.name as courseName, grade, credits
-    from students join taken
-        on idnr = student
-    join courses 
-        on course = code
-    order by student, course;
+CREATE VIEW FinishedCourses AS
+SELECT student, course, courses.name AS courseName, grade, credits
+    FROM students JOIN taken
+        ON idnr = student
+    JOIN courses 
+        ON course = code
+    ORDER BY student, course;
 
-create view Registrations as
-select student, course, 'registered' as status
-    from students join registered
-        on idnr = student
-union select student, course, 'waiting' as status
-    from students join waitingList
-        on idnr = student
-    order by status, course, student;
+CREATE VIEW Registrations AS
+SELECT student, course, 'registered' AS status
+    FROM students JOIN registered
+        ON idnr = student
+UNION SELECT student, course, 'waiting' AS status
+    FROM students JOIN waitingList
+        ON idnr = student
+    ORDER BY status, course, student;
 
-create view PassedCourses as
-select student, course, credits
-from FinishedCourses where grade in ('3', '4', '5');
+CREATE VIEW PassedCourses AS
+SELECT student, course, credits
+FROM FinishedCourses WHERE grade IN ('3', '4', '5');
 
-create view UnreadMandatory as
-select idnr as student, course
-    from students join mandatoryprogram
-        on students.program = mandatoryprogram.program
-union select student, course
-    from studentbranches join mandatorybranch
-        on (studentbranches.branch = mandatorybranch.branch
+CREATE VIEW UnreadMandatory AS
+SELECT idnr AS student, course
+    FROM students JOIN mandatoryprogram
+        ON students.program = mandatoryprogram.program
+UNION SELECT student, course
+    FROM studentbranches JOIN mandatorybranch
+        ON (studentbranches.branch = mandatorybranch.branch
             AND studentbranches.program = mandatorybranch.program)
-except select student, course from PassedCourses;
+EXCEPT SELECT student, course FROM PassedCourses;
 
-create view TakenCredits as
-select student, sum(credits) as totalCredits from PassedCourses group by student;
+CREATE VIEW TakenCredits AS
+SELECT student, SUM(credits) AS totalCredits FROM PassedCourses GROUP BY student;
 
-create view NumMandatoryLeft as
-select student, count(*) as mandatoryLeft from UnreadMandatory group by student;
+CREATE VIEW NumMandatoryLeft AS
+SELECT student, COUNT(*) AS mandatoryLeft FROM UnreadMandatory GROUP BY student;
 
-create view MathCredits as
-select student, sum(credits) as mathcredits from passedcourses join classified on 
-passedcourses.course = classified.course and classified.classification = 'math' group by student;
+CREATE VIEW MathCredits AS
+SELECT student, SUM(credits) AS mathcredits FROM Passedcourses JOIN Classified ON 
+Passedcourses.course = Classified.course AND Classified.Classification = 'math' GROUP BY student;
 
-create view NumSeminarCourses as
-select student, count(*) as seminarCourses from passedcourses join classified on 
-passedcourses.course = classified.course and classified.classification = 'seminar' group by student;
+CREATE VIEW NumSeminarCourses AS
+SELECT student, COUNT(*) AS seminarCourses FROM Passedcourses JOIN Classified ON 
+Passedcourses.course = Classified.course AND Classified.Classification = 'seminar' GROUP BY student;
 
-create view RecommendedCoursesHelper as
-select idnr as student, course from basicinformation join recommendedbranch on basicinformation.program = recommendedbranch.program AND basicinformation.branch = recommendedbranch.branch;
+CREATE VIEW RecommendedCoursesHelper AS
+SELECT idnr AS student, course FROM Basicinformation 
+JOIN recommendedbranch ON Basicinformation.program = recommendedbranch.program 
+AND Basicinformation.branch = recommendedbranch.branch;
 
-create view RecommendedCourses as
-select passedcourses.student, passedcourses.course, sum(credits) as credits from recommendedcourseshelper join passedcourses on recommendedcourseshelper.student = passedcourses.student AND recommendedcourseshelper.course = passedcourses.course group by passedcourses.student, passedcourses.course;
+CREATE VIEW RecommendedCourses AS
+SELECT Passedcourses.student, Passedcourses.course, SUM(credits) AS credits 
+FROM recommendedcourseshelper JOIN Passedcourses ON recommendedcourseshelper.student = Passedcourses.student AND recommendedcourseshelper.course = Passedcourses.course GROUP BY Passedcourses.student, Passedcourses.course;
 
-create view PathToGraduation as
-select
-    students.idnr as student,
-    coalesce(totalCredits, 0) as totalCredits,
-    coalesce(mandatoryLeft, 0) as mandatoryleft,
-    coalesce(mathCredits, 0) as mathCredits,
-    coalesce(seminarCourses, 0) as seminarcourses,
+CREATE VIEW PathToGraduation AS
+SELECT
+    students.idnr AS student,
+    COALESCE(totalCredits, 0) AS totalCredits,
+    COALESCE(mandatoryLeft, 0) AS mandatoryleft,
+    COALESCE(mathCredits, 0) AS mathCredits,
+    COALESCE(seminarCourses, 0) AS seminarcourses,
 
-    coalesce(mandatoryLeft = 0, true)
-    AND coalesce(totalCredits >= 10, false)
-    AND coalesce(recommendedcourses.credits >= 10, false)
-    AND coalesce(mathcredits >= 20 and seminarcourses > 0, false) as qualified
+    COALESCE(mandatoryLeft = 0, TRUE)
+    AND COALESCE(totalCredits >= 10, FALSE)
+    AND COALESCE(recommendedcourses.credits >= 10, FALSE)
+    AND COALESCE(mathcredits >= 20 AND seminarcourses > 0, FALSE) AS qualified
 
-from students full outer join TakenCredits on students.idnr = TakenCredits.student
-    full outer join NumMandatoryLeft on students.idnr = NumMandatoryLeft.student
-    full outer join MathCredits on students.idnr = MathCredits.student
-    full outer join numseminarcourses on students.idnr = NumSeminarCourses.student
-    full outer join recommendedcourses on students.idnr = recommendedcourses.student;
+FROM students FULL OUTER JOIN TakenCredits ON students.idnr = TakenCredits.student
+    FULL OUTER JOIN NumMandatoryLeft ON students.idnr = NumMandatoryLeft.student
+    FULL OUTER JOIN MathCredits ON students.idnr = MathCredits.student
+    FULL OUTER JOIN numseminarcourses ON students.idnr = NumSeminarCourses.student
+    FULL OUTER JOIN recommendedcourses ON students.idnr = recommendedcourses.student;
 
-create view warnrecmand as
-select recommendedbranch.course, branch from RecommendedBranch join MandatoryProgram on RecommendedBranch.program = MandatoryProgram.program AND recommendedbranch.course = mandatoryprogram.course;
+CREATE VIEW warnrecmand AS
+SELECT recommendedbranch.course, branch FROM RecommendedBranch JOIN MandatoryProgram ON RecommendedBranch.program = MandatoryProgram.program AND recommendedbranch.course = mandatoryprogram.course;
 
-create view registercount as
-select course, count(*) from registrations where status = 'registered' group by course;
+CREATE VIEW registercount AS
+SELECT course, COUNT(*) FROM registrations WHERE status = 'registered' GROUP BY course;
 
-create view warnoverfill as
-select course from limitedcourses join registercount on limitedcourses.code = registercount.course
-AND registercount.count > limitedcourses.capacity;
+CREATE VIEW warnOverfull AS
+SELECT Course FROM limitedcourses JOIN registercount ON limitedcourses.code = registercount.course
+AND registercount.COUNT > limitedcourses.capacity;

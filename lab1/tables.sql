@@ -1,83 +1,83 @@
-create table students (
-    idnr char(10) not null primary key,
-    name text not null,
-    login text not null,
-    program text not null
+CREATE TABLE Students (
+    idnr CHAR(10) NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    login TEXT NOT NULL,
+    program TEXT NOT NULL
 );
 
-create table branches (
-    name text not null,
-    program text not null,
-    primary key (name, program)
+CREATE TABLE Branches (
+    name TEXT NOT NULL,
+    program TEXT NOT NULL,
+    PRIMARY KEY (name, program)
 );
 
-create table courses (
-    code char(6) not null primary key,
-    name text not null,
-    credits real not null check (credits >= 0),
-    department text not null
+CREATE TABLE Courses (
+    code CHAR(6) NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    credits REAL NOT NULL CHECK (credits >= 0),
+    department TEXT NOT NULL
 );
 
-create table limitedcourses (
-    code char(6) not null primary key references courses(code),
-    capacity int not null check (capacity >= 0)
+CREATE TABLE LimitedCourses (
+    code CHAR(6) NOT NULL PRIMARY KEY REFERENCES courses(code),
+    capacity INT NOT NULL CHECK (capacity >= 0)
 );
 
-create table studentbranches (
-    student text not null primary key references students(idnr),
-    branch text not null,
-    program text not null,
-    foreign key (branch, program) references branches(name, program)
+CREATE TABLE StudentBranches (
+    student TEXT NOT NULL PRIMARY KEY REFERENCES students(idnr),
+    branch TEXT NOT NULL,
+    program TEXT NOT NULL,
+    FOREIGN KEY (branch, program) REFERENCES branches(name, program)
 );
 
-create table classifications (
-    name text not null primary key
+CREATE TABLE Classifications (
+    name TEXT NOT NULL PRIMARY KEY
 );
 
-create table classified (
-    course text not null references courses(code),
-    classification text not null references classifications(name),
-    primary key (course, classification)
+CREATE TABLE Classified (
+    course TEXT NOT NULL REFERENCES courses(code),
+    classification TEXT NOT NULL REFERENCES classifications(name),
+    PRIMARY KEY (course, classification)
 );
 
-create table mandatoryprogram (
-    course text not null references courses(code),
-    program text not null,
-    primary key (course, program)
+CREATE TABLE MandatoryProgram (
+    course TEXT NOT NULL REFERENCES courses(code),
+    program TEXT NOT NULL,
+    PRIMARY KEY (course, program)
 );
 
-create table mandatorybranch (
-    course text not null references courses(code),
-    branch text not null,
-    program text not null,
-    foreign key (branch, program) references branches(name, program),
-    primary key (course, branch, program)
+CREATE TABLE MandatoryBranch (
+    course TEXT NOT NULL REFERENCES courses(code),
+    branch TEXT NOT NULL,
+    program TEXT NOT NULL,
+    FOREIGN KEY (branch, program) REFERENCES branches(name, program),
+    PRIMARY KEY (course, branch, program)
 );
 
-create table recommendedbranch (
-    course text not null references courses(code),
-    branch text not null,
-    program text not null,
-    primary key (course, branch, program),
-    foreign key (branch, program) references branches(name, program)
+CREATE TABLE RecommendedBranch (
+    course TEXT NOT NULL REFERENCES courses(code),
+    branch TEXT NOT NULL,
+    program TEXT NOT NULL,
+    PRIMARY KEY (course, branch, program),
+    FOREIGN KEY (branch, program) REFERENCES branches(name, program)
 );
 
-create table registered (
-    student text not null references students(idnr),
-    course text not null references courses(code),
-    primary key (student, course)
+CREATE TABLE Registered (
+    student TEXT NOT NULL REFERENCES students(idnr),
+    course TEXT NOT NULL REFERENCES courses(code),
+    PRIMARY KEY (student, course)
 );
 
-create table taken (
-    student text not null references students(idnr),
-    course text not null references courses(code),
-    grade char not null check (grade in ('U', '3', '4', '5')),
-    primary key (student, course)
+CREATE TABLE Taken (
+    student TEXT NOT NULL REFERENCES students(idnr),
+    course TEXT NOT NULL REFERENCES courses(code),
+    grade CHAR NOT NULL CHECK (grade IN ('U', '3', '4', '5')),
+    PRIMARY KEY (student, course)
 );
 
-create table waitinglist (
-    student text not null references students(idnr),
-    course text not null references limitedcourses(code),
-    position int not null,
-    primary key (student, course)
+CREATE TABLE WaitingList (
+    student TEXT NOT NULL REFERENCES students(idnr),
+    course TEXT NOT NULL REFERENCES limitedcourses(code),
+    position INT NOT NULL,
+    PRIMARY KEY (student, course)
 );
