@@ -15,16 +15,55 @@ Normalization:
 D(studentIndr, studentName, login, branchName, programName, programAbbreviation, courseCode, courseName, credits, departmentName, departmentAbbreviation, cap, classification, grade, position)
 ->
 D1(studentIdnr, studentName, login, programName, branchName, programAbbreviation)
-D2(stduentIdnr, courseCode, courseName, credits, departmentName, departmentAbbreviation, cap, classfication, grade, position)
+D2(studentIdnr, courseCode, courseName, credits, departmentName, departmentAbbreviation, cap, classfication, grade, position)
 
 D1(studentIdnr, studentName, login, programName, branchName, programAbbreviation)
 ->
 D11(programName, programAbbreviation) //BCNF
 D12(programName, studentIdnr, studentName, login, branchName) //BCNF
 
-D2(stduentIdnr, courseCode, courseName, credits, departmentName, departmentAbbreviation, cap, classfication, grade, position)
+D2(studentIdnr, courseCode, courseName, credits, departmentName, departmentAbbreviation, cap, classfication, grade, position)
 
 ->
 
-D21(courseCode, courseName, credits, departmentName, departmentAbbreviation, cap, grade) //BCNF
-D22(stduentIdnr, courseCode, classfication, position) //BCNF
+D21(courseCode, courseName, credits, departmentName, departmentAbbreviation, cap)
+D22(studentIdnr, courseCode, classfication, position, grade)
+
+D21(courseCode, courseName, credits, departmentName, departmentAbbreviation, cap)
+->
+D211(courseCode, courseName, credits, departmentName, cap) //BCNF
+D212(departmentName, departmentAbbreviation) //BCNF
+
+D22(studentIdnr, courseCode, classfication, position, grade)
+->
+
+D221(studentIdnr, courseCode, position, grade) //BCNF
+D222(studentIdnr, courseCode, classfication) //BCNF
+
+All BCNF tables before MVD normalization:
+D11(programName, programAbbreviation) //BCNF
+D12(programName, studentIdnr, studentName, login, branchName) //BCNF
+D211(courseCode, courseName, credits, departmentName, cap) //BCNF
+D212(departmentName, departmentAbbreviation) //BCNF
+D221(studentIdnr, courseCode, position, grade) //BCNF
+D222(studentIdnr, courseCode, classfication) //BCNF
+
+MVD:
+courseCode ->> classification
+
+Normalization:
+D222(studentIdnr, courseCode, classfication) //BCNF
+
+->
+
+D2221(courseCode, classfication) //BCNF
+D2222(studentIdnr, courseCode) //BCNF
+
+All BCNF tables after MVD normalization:
+D11(programName, programAbbreviation) //BCNF
+D12(programName, studentIdnr, studentName, login, branchName) //BCNF
+D211(courseCode, courseName, credits, departmentName, cap) //BCNF
+D212(departmentName, departmentAbbreviation) //BCNF
+D221(studentIdr, courseCode, position, grade) //BCNF
+D2221(courseCode, classfication) //4NF
+D2222(studentIdnr, courseCode) //4NF
